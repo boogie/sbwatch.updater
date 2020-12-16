@@ -1,0 +1,25 @@
+#log {
+    border: 0;
+    margin: 0;
+    padding: 4px;
+    font-size: 0.9em;
+    font-family: 'Courier New', Courier, monospace;
+    background: #000;
+    color: #fff;
+}
+#log p {
+    margin: 0;
+}
+#log p .time {
+    color: #aaa;
+}
+#log p .message {
+    color: #fff;
+}
+#log p.error .message {
+    color: #f88;
+}
+
+main > .container {
+    padding: 60px 15px 0;
+}
