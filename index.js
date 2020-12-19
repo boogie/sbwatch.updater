@@ -59,12 +59,8 @@ class SBWatch {
     }
     async _requestDevice() {
         return navigator.bluetooth.requestDevice({
-            filters: [{
-                namePrefix: 'SBWatch-'
-            }, {
-                namePrefix: 'YoWatch#'
-            }],
-            optionalServices: [this.MAIN_SERVICE_UUID, this.OTA_SERVICE_UUID]
+            optionalServices: [this.MAIN_SERVICE_UUID, this.OTA_SERVICE_UUID],
+            acceptAllDevices: true
         });
     }
     async _connected() {
