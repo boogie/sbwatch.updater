@@ -2,6 +2,7 @@ class Logger {
     constructor(id) {
         this._id = id;
         this._el = document.getElementById(this._id);
+        this.clear();
     }
     info(message) {
         const time = new Date().toISOString();
@@ -10,6 +11,9 @@ class Logger {
     error(message) {
         const time = new Date().toISOString();
         this._el.innerHTML += `<p class="error"><span class="time">${time}</span> - <span class="message">${message}</span></p>`;
+    }
+    clear() {
+        this._el.innerHTML = `<p>Log:</p>`;
     }
 }
 
@@ -40,16 +44,22 @@ class SBWatch {
     async connect() {
         try {
             const device = await this._requestDevice();
+            this._device = window.device = device;
             document.getElementById('device-name').innerHTML = device.name;
             device.addEventListener('gattserverdisconnected', this._disconnected.bind(this));
             if (this._connectingCallback) this._connectingCallback();
-            this._logger.info(`Connecting to your watch...`);
+            this._logger.clear();
+            this._logger.info(`Connecting to your watch: ${device.name}`);
+            document.title = 'CONNECTING.';
             const server = await device.gatt.connect();
             this._logger.info(`Watch server connected.`);
+            document.title = 'CONNECTING..';
             const service = await server.getPrimaryService(this.OTA_SERVICE_UUID);
             this._logger.info(`Watch service connected.`);
+            document.title = 'CONNECTING...';
             this._otaCharacteristic = await service.getCharacteristic(this.OTA_CHARACTERISTIC_UUID);
             this._logger.info(`Watch characteristic connected.`);
+            document.title = 'CONNECTED';
         } catch (error) {
             this._logger.error(`${error.message}`);
             this._disconnected();
@@ -58,10 +68,17 @@ class SBWatch {
         await this._connected();
     }
     async _requestDevice() {
-        return navigator.bluetooth.requestDevice({
+        const options = {
             optionalServices: [this.MAIN_SERVICE_UUID, this.OTA_SERVICE_UUID],
             acceptAllDevices: true
-        });
+        };
+        if (window.location.search) {
+            options.filters = [{
+                namePrefix: window.location.search.substr(1)
+            }];
+            options.acceptAllDevices = false;
+        }
+        return navigator.bluetooth.requestDevice(options);
     }
     async _connected() {
         this._logger.info('Ready for the update.');
@@ -81,6 +98,7 @@ class SBWatch {
     }
     async uploadFirmware(firmwareArray) {
         this._logger.info('Starting OTA update.');
+        document.title = 'STARTING';
         const percent = Math.floor(firmwareArray.length / 100);
         for (let index = 0; index < firmwareArray.length; index++) {
             await this.sendOTAData(firmwareArray[index]);
@@ -89,9 +107,13 @@ class SBWatch {
             }
             if (index % percent === 0) {
                 document.getElementById('percent').innerHTML = `Uploading... (${index / percent}%)`;
+                document.title = `Updating (${index / percent}%)`;
             }
         }
-        this._logger.info('OTA Update DONE.');
+        this._logger.clear();
+        this._logger.info('OTA Update DONE for ${device.name}.');
+        document.title = 'DONE';
+        document.getElementById('percent').innerHTML = `Please connect your SB Watch.`;
     }
 }
 
