@@ -112,7 +112,7 @@ class SBWatch {
         }
         this._logger.clear();
         this._logger.info(`OTA Update DONE for ${device.name}.`);
-        document.title = 'DONE';
+        document.title = `DONE ${device.name}`;
         document.getElementById('percent').innerHTML = `Please connect your SB Watch.`;
     }
 }
